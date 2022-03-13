@@ -1,5 +1,8 @@
 {
   "name": "@mach25/find-elements",
+  "type": "module",
+  "module": "lib/index.js",
+  "private": false,
   "version": "1.0.0",
   "description": "Utility to find elements on a web page using selector functions and a timeout",
   "main": "lib/index.js",
