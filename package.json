@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "description": "Utility to find elements on a web page using selector functions and a timeout",
   "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mach25/find-elements"
+  },
+  "bugs": {
+    "url": "https://github.com/mach25/find-elements/issues"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
