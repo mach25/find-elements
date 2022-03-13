@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "./lib/",
+    "strict": true,
+    "sourceMap": true,
+    "module": "ESNext",
+    "target": "ES2021",
+    "esModuleInterop": true
+  },
+  "include": [
+    "src"
+  ]
+}

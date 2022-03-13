@@ -1,0 +1,15 @@
+{
+  "name": "@mach25/find-elements",
+  "version": "1.0.0",
+  "description": "Utility to find elements on a web page using selector functions and a timeout",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^2.5.1",
+    "typescript": "^4.6.2"
+  }
+}
