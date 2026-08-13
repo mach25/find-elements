@@ -48,19 +48,27 @@ describe('bySelector', () => {
 });
 
 describe('getFirst', () => {
-  it('returns the first item', () => {
+  it('yields the first match of the wrapped lookup', () => {
     const first = append('li', { class: 'item' });
     append('li', { class: 'item' });
 
-    expect(getFirst(document.querySelectorAll('.item'))).toBe(first);
+    expect(getFirst(bySelector)('.item')).toBe(first);
   });
 
-  it('returns null for an empty list', () => {
-    expect(getFirst(document.querySelectorAll('.item'))).toBeNull();
+  it('returns null when the wrapped lookup finds nothing', () => {
+    expect(getFirst(bySelector)('.item')).toBeNull();
   });
 
-  it('returns null for a nullish list', () => {
-    expect(getFirst(null as unknown as NodeListOf<Element>)).toBeNull();
+  it('returns null when the wrapped lookup returns an empty list', () => {
+    const empty = () => document.querySelectorAll('.item');
+    expect(getFirst(empty)('.item')).toBeNull();
+  });
+
+  it('passes the selector through to the wrapped lookup', () => {
+    const findFnc = vi.fn(bySelector);
+    getFirst(findFnc)('.item');
+
+    expect(findFnc).toHaveBeenCalledWith('.item');
   });
 });
 
@@ -127,7 +135,7 @@ describe('findElements', () => {
 
   it('waits for a CSS selector when the find function returns null on a miss', async () => {
     const start = Date.now();
-    const pending = findElements('.row', (s) => getFirst(document.querySelectorAll(s)), 2000);
+    const pending = findElements('.row', getFirst(bySelector), 2000);
     setTimeout(() => append('p', { class: 'row' }), 30);
 
     const found = await pending;

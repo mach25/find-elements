@@ -44,7 +44,7 @@ import { findElements, bySelector, getFirst } from '@mach25/find-elements';
 const rows = await findElements('.data-row', bySelector);
 
 // Just the first match
-const firstRow = await findElements('.data-row', (s) => getFirst(document.querySelectorAll(s)));
+const firstRow = await findElements('.data-row', getFirst(bySelector));
 ```
 
 Failures reject, so handle them:
@@ -88,10 +88,19 @@ The lookup is a parameter rather than a fixed strategy, so a call states what it
 | `byId(id)`             | `document.getElementById`   | The element, or `null`. The default.        |
 | `bySelector(selector)` | `document.querySelectorAll` | The `NodeList`, or `null` when it is empty. |
 
-`getFirst(items)` is the odd one out: it takes a `NodeList` rather than a string, so it cannot be passed to `findElements` directly. Compose it with a lookup to wait for the first match:
+`getFirst(findFnc)` is a wrapper rather than a lookup: give it a lookup that returns a `NodeList` and you get back one that yields only the first match, which is what you usually want when the selector matches several elements.
 
 ```js
-findElements('.data-row', (s) => getFirst(document.querySelectorAll(s)));
+findElements('.data-row', getFirst(bySelector));
+```
+
+It composes with any `NodeList` lookup, not just `bySelector`:
+
+```js
+findElements(
+  'email',
+  getFirst((name) => document.getElementsByName(name))
+);
 ```
 
 ### Writing your own
@@ -102,6 +111,17 @@ Any `(selector: string) => HTMLElements | null` works. The one rule is that a mi
 const byDataRole = (role) => document.querySelector(`[data-role="${role}"]`);
 const el = await findElements('submit', byDataRole);
 ```
+
+## Migrating from 1.x
+
+`getFirst` takes a lookup function rather than a `NodeList`, so it composes instead of having to be called by hand:
+
+```diff
+-findElements('.data-row', (s) => getFirst(document.querySelectorAll(s)));
++findElements('.data-row', getFirst(bySelector));
+```
+
+Nothing else changed.
 
 ## Requirements
 

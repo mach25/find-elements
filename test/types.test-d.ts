@@ -1,5 +1,5 @@
 import { expectTypeOf } from 'vitest';
-import { byId, bySelector, findElements, type SelectorFindFunction } from '../src/index.js';
+import { byId, bySelector, findElements, getFirst, type SelectorFindFunction } from '../src/index.js';
 
 // These assertions are checked by `npm run typecheck`, not at runtime. They exist because the
 // return type is the whole point of findElements being generic: without it every caller has to
@@ -12,6 +12,11 @@ expectTypeOf(findElements('app-root', byId, 3000)).resolves.toEqualTypeOf<HTMLEl
 
 // bySelector widens to the NodeList it actually returns.
 expectTypeOf(findElements('.row', bySelector)).resolves.toEqualTypeOf<NodeListOf<Element>>();
+
+// getFirst unwraps that NodeList back to a single element of the same type.
+expectTypeOf(findElements('.row', getFirst(bySelector))).resolves.toEqualTypeOf<Element>();
+const inputs = (s: string) => document.querySelectorAll<HTMLInputElement>(s);
+expectTypeOf(findElements('.field', getFirst(inputs))).resolves.toEqualTypeOf<HTMLInputElement>();
 
 // A custom lookup flows its own element type through.
 const byDataRole = (role: string) => document.querySelector<HTMLInputElement>(`[data-role="${role}"]`);
