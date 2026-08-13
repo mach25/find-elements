@@ -5,7 +5,10 @@ interface SelectorFindFunction {
 }
 
 export const byId = (id: string): HTMLElements | null => document.getElementById(id);
-export const bySelector = (selector: string): HTMLElements => document.querySelectorAll(selector);
+export const bySelector = (selector: string): HTMLElements | null => {
+  const found = document.querySelectorAll(selector);
+  return found.length === 0 ? null : found;
+};
 export const getFirst = (items: NodeListOf<HTMLElement | HTMLInputElement | Element>): HTMLElement | HTMLInputElement | Element | null => {
   if (!items || items.length === 0) {
     return null;
