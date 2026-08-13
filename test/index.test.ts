@@ -155,3 +155,73 @@ describe('findElements with bySelector', () => {
     expect(Date.now() - start).toBeGreaterThanOrEqual(30);
   });
 });
+
+// The timeout is spent on frames that actually ran, not on wall-clock time. A hidden tab
+// stops firing requestAnimationFrame, so wall-clock alone would let a long background pause
+// exhaust the budget without the element ever having had a rendered frame to appear in —
+// rejecting on the first frame after the tab came back.
+describe('findElements while frames are not running', () => {
+  let frames: FrameRequestCallback[] = [];
+  let now = 0;
+
+  /** Runs the frames queued so far, then lets pending promise callbacks settle. */
+  const flushFrame = async () => {
+    const queued = frames;
+    frames = [];
+    queued.forEach((cb) => cb(now));
+    await Promise.resolve();
+  };
+
+  beforeEach(() => {
+    frames = [];
+    now = 1_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('does not count a long pause against the timeout', async () => {
+    const pending = findElements('late', byId, 10_000);
+    now += 600_000; // ten minutes backgrounded, no frames at all
+
+    await flushFrame(); // first frame back: still missing, but the budget is untouched
+    const el = append('div', { id: 'late' });
+    now += 50;
+    await flushFrame();
+
+    await expect(pending).resolves.toBe(el);
+  });
+
+  it('still rejects once enough frames have run', async () => {
+    const pending = findElements('never', byId, 100);
+
+    for (let i = 0; i < 20; i++) {
+      now += 16;
+      await flushFrame();
+    }
+
+    await expect(pending).rejects.toThrow(/^never not found in \d+ milliseconds$/);
+  });
+
+  it('reports the waited time rather than the wall clock', async () => {
+    const pending = findElements('never', byId, 300);
+    now += 600_000;
+
+    for (let i = 0; i < 40; i++) {
+      now += 16;
+      await flushFrame();
+    }
+
+    const error = await pending.then(
+      () => null,
+      (e: Error) => e
+    );
+    const reported = Number(error!.message.match(/(\d+) milliseconds$/)![1]);
+    expect(reported).toBeGreaterThanOrEqual(300);
+    expect(reported).toBeLessThan(1_000); // wall clock was over 600_000
+  });
+});

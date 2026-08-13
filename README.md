@@ -73,9 +73,9 @@ Returns a `Promise` that resolves with whatever `findFnc` returned. It calls `fi
 
 In TypeScript the resolved type follows the lookup, so no cast is needed: the default gives you an `HTMLElement`, `bySelector` gives you a `NodeListOf<Element>`, and a custom `document.querySelector<HTMLInputElement>` lookup gives you an `HTMLInputElement`.
 
-The `timeout` is a backstop so the promise cannot hang forever, not a precise deadline — treat it as the earliest point at which the promise may reject, not the latest. Polling runs on `requestAnimationFrame`, which browsers pause in a backgrounded or hidden tab, so the clock is only consulted when a frame actually runs. A tab that sits in the background effectively suspends the wait: nothing is polled, nothing is rejected, and the promise settles on the first frame after the tab becomes visible again. The elapsed time in the rejection message can therefore be far larger than `timeout`.
+The `timeout` is a backstop so the promise cannot hang forever, not a precise deadline. It measures time the page was actually being rendered, not wall-clock time. Polling runs on `requestAnimationFrame`, which browsers stop firing in a backgrounded or hidden tab, so a tab left in the background suspends the wait rather than consuming it — the budget is spent only on frames that ran. Switch back after ten minutes away and an element with a ten second timeout still gets its full ten seconds to appear.
 
-That is usually what you want. An element is unlikely to render in a hidden tab, and pausing means no work is done there — the wait simply resumes when the page is on screen.
+In practice this means a wall clock can read far more than `timeout` by the time the promise settles, which is the intended behaviour: an element is unlikely to render in a hidden tab, so time spent there should not count against it. The elapsed figure in the rejection message reports the time waited, not the wall clock.
 
 Every successful find writes a line to `console.info`.
 

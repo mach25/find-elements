@@ -17,6 +17,12 @@ export const getFirst = (items: NodeListOf<HTMLElement | HTMLInputElement | Elem
   return items[0];
 };
 
+/**
+ * Longest gap between two frames that still counts as real waiting. Anything longer means
+ * frames stopped running rather than that time passed while looking for the element.
+ */
+const MAX_FRAME_GAP = 100;
+
 const log = (selector: string, start: number) => {
   console.info(`${selector} found in ${Date.now() - start} milliseconds`);
 };
@@ -27,7 +33,6 @@ export function findElements<T extends HTMLElements = HTMLElement>(
   timeout = 10000
 ): Promise<T> {
   const start = Date.now();
-  const isOverTimestamp = start + timeout;
   return new Promise((resolve, reject) => {
     const result = findFnc(selector);
     if (result) {
@@ -35,16 +40,26 @@ export function findElements<T extends HTMLElements = HTMLElement>(
       resolve(result);
     } else {
       let animationFrameId: number;
+      let lastFrame = start;
+      let waited = 0;
       const query = () => {
         const result = findFnc(selector);
-        const elapsed = Date.now() - start;
         if (result) {
           cancelAnimationFrame(animationFrameId);
           log(selector, start);
           resolve(result);
-        } else if (Date.now() > isOverTimestamp) {
+          return;
+        }
+        // Only spend the timeout on time the page was actually being rendered. A gap longer
+        // than a frame or two means frames were not running at all — a hidden tab, a
+        // minimised window, a blocked main thread — and that is not time the element had a
+        // chance to appear in, so it must not count against the budget.
+        const now = Date.now();
+        waited += Math.min(now - lastFrame, MAX_FRAME_GAP);
+        lastFrame = now;
+        if (waited > timeout) {
           cancelAnimationFrame(animationFrameId);
-          reject(new Error(`${selector} not found in ${elapsed} milliseconds`));
+          reject(new Error(`${selector} not found in ${waited} milliseconds`));
         } else {
           animationFrameId = requestAnimationFrame(query);
         }
