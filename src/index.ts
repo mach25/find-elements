@@ -1,26 +1,21 @@
-export type HTMLElements =
-  Element | HTMLElement | HTMLInputElement | NodeListOf<Element> | NodeListOf<HTMLElement> | NodeListOf<HTMLInputElement>;
+/**
+ * What a lookup may return. Subtypes are covered by these three: HTMLInputElement is an
+ * Element, NodeListOf<HTMLElement> is assignable to NodeListOf<Element>, and the array case
+ * carries the wrappers in ./select.js that yield several elements at once.
+ */
+export type HTMLElements = Element | NodeListOf<Element> | readonly Element[];
 
 export interface SelectorFindFunction<T extends HTMLElements = HTMLElements> {
   (selector: string): T | null;
 }
+
+export * from './select.js';
 
 export const byId = (id: string): HTMLElement | null => document.getElementById(id);
 export const bySelector = (selector: string): NodeListOf<Element> | null => {
   const found = document.querySelectorAll(selector);
   return found.length === 0 ? null : found;
 };
-/**
- * Wraps a lookup that returns a NodeList so it yields only the first match, letting a
- * multi-match lookup be used wherever a single element is wanted:
- * `findElements('.data-row', getFirst(bySelector))`.
- */
-export const getFirst =
-  <T extends Element>(findFnc: SelectorFindFunction<NodeListOf<T>>): SelectorFindFunction<T> =>
-  (selector) => {
-    const found = findFnc(selector);
-    return found === null || found.length === 0 ? null : found[0];
-  };
 
 /**
  * Longest gap between two frames that still counts as real waiting. Anything longer means

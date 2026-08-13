@@ -88,19 +88,44 @@ The lookup is a parameter rather than a fixed strategy, so a call states what it
 | `byId(id)`             | `document.getElementById`   | The element, or `null`. The default.        |
 | `bySelector(selector)` | `document.querySelectorAll` | The `NodeList`, or `null` when it is empty. |
 
-`getFirst(findFnc)` is a wrapper rather than a lookup: give it a lookup that returns a `NodeList` and you get back one that yields only the first match, which is what you usually want when the selector matches several elements.
+### Picking elements out of a list
+
+`bySelector` matches everything, which is rarely what you want. These wrappers take a lookup that returns a `NodeList` and give back one that narrows it — so they slot straight into `findElements`:
 
 ```js
-findElements('.data-row', getFirst(bySelector));
+findElements('.data-row', getFirst(bySelector)); // the first row, once one exists
+findElements('.data-row', take(bySelector, 3)); // the first three, once three exist
 ```
 
-It composes with any `NodeList` lookup, not just `bySelector`:
+| Wrapper                      | Yields                                                   |
+| ---------------------------- | -------------------------------------------------------- |
+| `getFirst(findFnc)`          | The first match.                                         |
+| `getLast(findFnc)`           | The last match.                                          |
+| `getAt(findFnc, index)`      | The match at `index`. Negative counts back from the end. |
+| `take(findFnc, count)`       | The first `count` matches, as an array.                  |
+| `takeLast(findFnc, count)`   | The last `count` matches, as an array.                   |
+| `filter(findFnc, predicate)` | Every match satisfying `predicate`, as an array.         |
+
+Each one returns `null` until it can satisfy the request in full, which is what makes the waiting work. `take(bySelector, 3)` does not yield two elements and call it done — it keeps polling until the third has rendered. Likewise `getAt(bySelector, 4)` waits for a fifth element rather than giving up when there are four.
+
+They wrap any `NodeList` lookup, not only `bySelector`:
 
 ```js
 findElements(
   'email',
   getFirst((name) => document.getElementsByName(name))
 );
+```
+
+And they compose with a typed lookup, carrying the element type through:
+
+```ts
+const inputs = (s: string) => document.querySelectorAll<HTMLInputElement>(s);
+
+const checked = await findElements(
+  '.option',
+  filter(inputs, (el) => el.checked)
+); // HTMLInputElement[]
 ```
 
 ### Writing your own
@@ -121,7 +146,9 @@ const el = await findElements('submit', byDataRole);
 +findElements('.data-row', getFirst(bySelector));
 ```
 
-Nothing else changed.
+That is the only breaking change. `getLast`, `getAt`, `take`, `takeLast` and `filter` are new alongside it, and `bySelector` returns `null` instead of an empty `NodeList` when nothing matches — so passing it to `findElements` now waits for a match rather than resolving immediately with zero elements.
+
+The wrappers live in their own module, but everything is re-exported from the package root, so imports are unchanged.
 
 ## Requirements
 

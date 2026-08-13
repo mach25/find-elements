@@ -1,13 +1,13 @@
-export type HTMLElements = Element | HTMLElement | HTMLInputElement | NodeListOf<Element> | NodeListOf<HTMLElement> | NodeListOf<HTMLInputElement>;
+/**
+ * What a lookup may return. Subtypes are covered by these three: HTMLInputElement is an
+ * Element, NodeListOf<HTMLElement> is assignable to NodeListOf<Element>, and the array case
+ * carries the wrappers in ./select.js that yield several elements at once.
+ */
+export type HTMLElements = Element | NodeListOf<Element> | readonly Element[];
 export interface SelectorFindFunction<T extends HTMLElements = HTMLElements> {
     (selector: string): T | null;
 }
+export * from './select.js';
 export declare const byId: (id: string) => HTMLElement | null;
 export declare const bySelector: (selector: string) => NodeListOf<Element> | null;
-/**
- * Wraps a lookup that returns a NodeList so it yields only the first match, letting a
- * multi-match lookup be used wherever a single element is wanted:
- * `findElements('.data-row', getFirst(bySelector))`.
- */
-export declare const getFirst: <T extends Element>(findFnc: SelectorFindFunction<NodeListOf<T>>) => SelectorFindFunction<T>;
 export declare function findElements<T extends HTMLElements = HTMLElement>(selector: string, findFnc?: SelectorFindFunction<T>, timeout?: number): Promise<T>;

@@ -47,31 +47,6 @@ describe('bySelector', () => {
   });
 });
 
-describe('getFirst', () => {
-  it('yields the first match of the wrapped lookup', () => {
-    const first = append('li', { class: 'item' });
-    append('li', { class: 'item' });
-
-    expect(getFirst(bySelector)('.item')).toBe(first);
-  });
-
-  it('returns null when the wrapped lookup finds nothing', () => {
-    expect(getFirst(bySelector)('.item')).toBeNull();
-  });
-
-  it('returns null when the wrapped lookup returns an empty list', () => {
-    const empty = () => document.querySelectorAll('.item');
-    expect(getFirst(empty)('.item')).toBeNull();
-  });
-
-  it('passes the selector through to the wrapped lookup', () => {
-    const findFnc = vi.fn(bySelector);
-    getFirst(findFnc)('.item');
-
-    expect(findFnc).toHaveBeenCalledWith('.item');
-  });
-});
-
 describe('findElements', () => {
   it('resolves with an element that is already present', async () => {
     const el = append('div', { id: 'ready' });
