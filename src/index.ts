@@ -1,11 +1,12 @@
-type HTMLElements = Element | HTMLElement | HTMLInputElement | NodeListOf<Element> | NodeListOf<HTMLElement> | NodeListOf<HTMLInputElement>;
+export type HTMLElements =
+  Element | HTMLElement | HTMLInputElement | NodeListOf<Element> | NodeListOf<HTMLElement> | NodeListOf<HTMLInputElement>;
 
-interface SelectorFindFunction {
-  (selector: string): HTMLElements | null;
+export interface SelectorFindFunction<T extends HTMLElements = HTMLElements> {
+  (selector: string): T | null;
 }
 
-export const byId = (id: string): HTMLElements | null => document.getElementById(id);
-export const bySelector = (selector: string): HTMLElements | null => {
+export const byId = (id: string): HTMLElement | null => document.getElementById(id);
+export const bySelector = (selector: string): NodeListOf<Element> | null => {
   const found = document.querySelectorAll(selector);
   return found.length === 0 ? null : found;
 };
@@ -20,11 +21,11 @@ const log = (selector: string, start: number) => {
   console.info(`${selector} found in ${Date.now() - start} milliseconds`);
 };
 
-export function findElements(
+export function findElements<T extends HTMLElements = HTMLElement>(
   selector: string,
-  findFnc: SelectorFindFunction = byId,
+  findFnc: SelectorFindFunction<T> = byId as SelectorFindFunction<T>,
   timeout = 10000
-): Promise<Element | HTMLElement | NodeListOf<HTMLElement> | NodeListOf<HTMLInputElement> | NodeListOf<Element>> {
+): Promise<T> {
   const start = Date.now();
   const isOverTimestamp = start + timeout;
   return new Promise((resolve, reject) => {

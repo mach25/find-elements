@@ -37,7 +37,9 @@ describe('bySelector', () => {
     const second = append('p', { class: 'row' });
     append('p', { class: 'other' });
 
-    expect(Array.from(bySelector('.row'))).toEqual([first, second]);
+    const found = bySelector('.row');
+    expect(found).not.toBeNull();
+    expect(Array.from(found!)).toEqual([first, second]);
   });
 
   it('returns null when nothing matches', () => {

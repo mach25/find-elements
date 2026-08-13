@@ -21,11 +21,13 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.test.json"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^26.2.0",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
     "typescript": "^7.0.2",

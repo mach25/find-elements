@@ -22,6 +22,19 @@ const banner = await findElements('cookie-banner');
 banner.classList.add('ready');
 ```
 
+The common case is getting a handle on a mount point that something else renders — a CMS, a template, another app — so you can attach to it:
+
+```jsx
+import { createRoot } from 'react-dom/client';
+import { findElements } from '@mach25/find-elements';
+import App from './App';
+
+const container = await findElements('app-root');
+createRoot(container).render(<App />);
+```
+
+No `DOMContentLoaded` listener, no `setTimeout` guess, no `MutationObserver` to tear down — the mount waits exactly as long as it needs to, and throws if the container never shows up.
+
 By default it looks the element up by `id`. Pass a different selector function as the second argument:
 
 ```js
@@ -57,6 +70,8 @@ try {
 | `timeout`  | `number`                                     | `10000` | Milliseconds before giving up. |
 
 Returns a `Promise` that resolves with whatever `findFnc` returned. It calls `findFnc` once immediately; if that comes back falsy it re-checks on each `requestAnimationFrame` until something is found or `timeout` is exceeded, then rejects with an `Error`.
+
+In TypeScript the resolved type follows the lookup, so no cast is needed: the default gives you an `HTMLElement`, `bySelector` gives you a `NodeListOf<Element>`, and a custom `document.querySelector<HTMLInputElement>` lookup gives you an `HTMLInputElement`.
 
 Because polling is driven by `requestAnimationFrame`, a backgrounded or hidden tab throttles the checks — the promise settles once the tab is visible again, and the reported elapsed time can overshoot `timeout` considerably.
 
@@ -95,7 +110,10 @@ The package is ESM only (`"type": "module"`); `require()` will not work. TypeScr
 ## Development
 
 ```sh
-npm run build   # compile src/ to lib/
+npm run build       # compile src/ to lib/
+npm test            # run the suite once
+npm run test:watch  # re-run on change
+npm run typecheck   # type-check src/ and test/, including the type assertions
 ```
 
 ## License
