@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { byId, bySelector, findElements, getFirst } from '../src/index.js';
+import { byId, bySelector, findElements, getFirst, setLogger } from '../src/index.js';
 
 /** Appends an element to the body and returns it. */
 const append = (tag: string, attrs: Record<string, string> = {}): HTMLElement => {
@@ -96,15 +96,10 @@ describe('findElements', () => {
     expect(findFnc.mock.calls.length).toBeGreaterThan(1);
   });
 
-  it('logs how long the lookup took', async () => {
-    append('div', { id: 'logged' });
-    await findElements('logged');
+  it('stays silent by default', async () => {
+    append('div', { id: 'quiet' });
+    await findElements('quiet');
 
-    expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/^logged found in \d+ milliseconds$/));
-  });
-
-  it('does not log when the lookup times out', async () => {
-    await expect(findElements('never', byId, 50)).rejects.toThrow();
     expect(console.info).not.toHaveBeenCalled();
   });
 
@@ -206,5 +201,51 @@ describe('findElements while frames are not running', () => {
     const reported = Number(error!.message.match(/(\d+) milliseconds$/)![1]);
     expect(reported).toBeGreaterThanOrEqual(300);
     expect(reported).toBeLessThan(1_000); // wall clock was over 600_000
+  });
+});
+
+// setLogger is module-level state, so every test here has to put it back.
+describe('setLogger', () => {
+  afterEach(() => {
+    setLogger(null);
+  });
+
+  it('reports how long the lookup took once a logger is set', async () => {
+    const logger = vi.fn();
+    setLogger(logger);
+    append('div', { id: 'logged' });
+
+    await findElements('logged');
+
+    expect(logger).toHaveBeenCalledWith(expect.stringMatching(/^logged found in \d+ milliseconds$/));
+  });
+
+  it('accepts console.info directly', async () => {
+    setLogger(console.info);
+    append('div', { id: 'to-console' });
+
+    await findElements('to-console');
+
+    expect(console.info).toHaveBeenCalledWith(expect.stringMatching(/^to-console found in \d+ milliseconds$/));
+  });
+
+  it('does not report a lookup that timed out', async () => {
+    const logger = vi.fn();
+    setLogger(logger);
+
+    await expect(findElements('never', byId, 50)).rejects.toThrow();
+
+    expect(logger).not.toHaveBeenCalled();
+  });
+
+  it('goes quiet again when set back to null', async () => {
+    const logger = vi.fn();
+    setLogger(logger);
+    setLogger(null);
+    append('div', { id: 'quiet-again' });
+
+    await findElements('quiet-again');
+
+    expect(logger).not.toHaveBeenCalled();
   });
 });

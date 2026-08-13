@@ -77,7 +77,18 @@ The `timeout` is a backstop so the promise cannot hang forever, not a precise de
 
 In practice this means a wall clock can read far more than `timeout` by the time the promise settles, which is the intended behaviour: an element is unlikely to render in a hidden tab, so time spent there should not count against it. The elapsed figure in the rejection message reports the time waited, not the wall clock.
 
-Every successful find writes a line to `console.info`.
+### `setLogger(log)`
+
+Nothing is logged by default. Pass a function to hear how long each successful lookup took, which is useful when you are trying to work out whether an element is slow to render or never renders at all:
+
+```js
+import { setLogger } from '@mach25/find-elements';
+
+setLogger(console.info); // "app-root found in 812 milliseconds"
+setLogger(null); // quiet again
+```
+
+Only successful lookups are reported; a timeout comes through as the rejected promise instead.
 
 ### Selector functions
 
@@ -137,6 +148,12 @@ const byDataRole = (role) => document.querySelector(`[data-role="${role}"]`);
 const el = await findElements('submit', byDataRole);
 ```
 
+## Migrating from 2.0
+
+Successful lookups no longer write to `console.info` unless you ask for it — call `setLogger(console.info)` to get the old behaviour back.
+
+The package now declares `exports`, so imports must go through the package root or the `./select` subpath. Reaching into `@mach25/find-elements/lib/…` no longer resolves.
+
 ## Migrating from 1.x
 
 `getFirst` takes a lookup function rather than a `NodeList`, so it composes instead of having to be called by hand:
@@ -155,6 +172,12 @@ The wrappers live in their own module, but everything is re-exported from the pa
 Browser only — it uses `document` and `requestAnimationFrame`, so there is no Node or SSR support.
 
 The package is ESM only (`"type": "module"`); `require()` will not work. TypeScript declarations are bundled.
+
+Everything is available from the package root. The list wrappers are also reachable on their own subpath if you would rather be explicit about where they come from:
+
+```js
+import { take } from '@mach25/find-elements/select';
+```
 
 ## Development
 

@@ -23,8 +23,21 @@ export const bySelector = (selector: string): NodeListOf<Element> | null => {
  */
 const MAX_FRAME_GAP = 100;
 
+export type Logger = (message: string) => void;
+
+let logger: Logger | null = null;
+
+/**
+ * Routes the "found in N milliseconds" line somewhere. A library has no business writing to
+ * the console uninvited, so nothing is logged until this is called:
+ * `setLogger(console.info)`. Pass null to turn it off again.
+ */
+export const setLogger = (log: Logger | null): void => {
+  logger = log;
+};
+
 const log = (selector: string, start: number) => {
-  console.info(`${selector} found in ${Date.now() - start} milliseconds`);
+  logger?.(`${selector} found in ${Date.now() - start} milliseconds`);
 };
 
 export function findElements<T extends HTMLElements = HTMLElement>(

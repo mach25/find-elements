@@ -1,10 +1,20 @@
 {
   "name": "@mach25/find-elements",
   "type": "module",
-  "module": "lib/index.js",
   "private": false,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Utility to find elements on a web page using selector functions and a timeout",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./select": {
+      "types": "./lib/select.d.ts",
+      "default": "./lib/select.js"
+    },
+    "./package.json": "./package.json"
+  },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
