@@ -63,17 +63,19 @@ try {
 
 ### `findElements(selector, findFnc?, timeout?)`
 
-| Parameter  | Type                                         | Default | Description                    |
-| ---------- | -------------------------------------------- | ------- | ------------------------------ |
-| `selector` | `string`                                     | —       | Passed through to `findFnc`.   |
-| `findFnc`  | `(selector: string) => HTMLElements \| null` | `byId`  | How to look the element up.    |
-| `timeout`  | `number`                                     | `10000` | Milliseconds before giving up. |
+| Parameter  | Type                                         | Default | Description                                                        |
+| ---------- | -------------------------------------------- | ------- | ------------------------------------------------------------------ |
+| `selector` | `string`                                     | —       | Passed through to `findFnc`.                                       |
+| `findFnc`  | `(selector: string) => HTMLElements \| null` | `byId`  | How to look the element up.                                        |
+| `timeout`  | `number`                                     | `10000` | Milliseconds before giving up. A floor, not a ceiling — see below. |
 
 Returns a `Promise` that resolves with whatever `findFnc` returned. It calls `findFnc` once immediately; if that comes back falsy it re-checks on each `requestAnimationFrame` until something is found or `timeout` is exceeded, then rejects with an `Error`.
 
 In TypeScript the resolved type follows the lookup, so no cast is needed: the default gives you an `HTMLElement`, `bySelector` gives you a `NodeListOf<Element>`, and a custom `document.querySelector<HTMLInputElement>` lookup gives you an `HTMLInputElement`.
 
-Because polling is driven by `requestAnimationFrame`, a backgrounded or hidden tab throttles the checks — the promise settles once the tab is visible again, and the reported elapsed time can overshoot `timeout` considerably.
+The `timeout` is a backstop so the promise cannot hang forever, not a precise deadline — treat it as the earliest point at which the promise may reject, not the latest. Polling runs on `requestAnimationFrame`, which browsers pause in a backgrounded or hidden tab, so the clock is only consulted when a frame actually runs. A tab that sits in the background effectively suspends the wait: nothing is polled, nothing is rejected, and the promise settles on the first frame after the tab becomes visible again. The elapsed time in the rejection message can therefore be far larger than `timeout`.
+
+That is usually what you want. An element is unlikely to render in a hidden tab, and pausing means no work is done there — the wait simply resumes when the page is on screen.
 
 Every successful find writes a line to `console.info`.
 
