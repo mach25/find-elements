@@ -13,7 +13,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mach25/find-elements"
+    "url": "git+https://github.com/mach25/find-elements.git"
   },
   "bugs": {
     "url": "https://github.com/mach25/find-elements/issues"
