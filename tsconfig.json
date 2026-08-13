@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "outDir": "./lib/",
+    "rootDir": "./src",
+    "outDir": "./lib",
     "strict": true,
     "sourceMap": true,
     "module": "ESNext",

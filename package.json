@@ -3,9 +3,14 @@
   "type": "module",
   "module": "lib/index.js",
   "private": false,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Utility to find elements on a web page using selector functions and a timeout",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "src"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/mach25/find-elements"
@@ -14,12 +19,13 @@
     "url": "https://github.com/mach25/find-elements/issues"
   },
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.3"
+    "prettier": "^3.9.6",
+    "typescript": "^7.0.2"
   }
 }
